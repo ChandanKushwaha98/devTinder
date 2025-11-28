@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mongosh:*)",
+      "Bash(mongo devTinder:*)",
+      "Bash(node dropOldIndex.js:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

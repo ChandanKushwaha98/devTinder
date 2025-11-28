@@ -50,4 +50,4 @@ userSchema.methods.validatePassword = async function (password) {
     const user = this;
     return await bcrypt.compare(password, user.password);
 }
-module.exports = mongoose.model('User', userSchema);
+module.exports = mongoose.models.User || mongoose.model('User', userSchema);
