@@ -1,9 +1,9 @@
 const express = require('express');
 const authRouter = express.Router();
-const User = require('../models/User');
 const bcrypt = require('bcrypt');
 const validator = require('validator');
 const { validataSignupData } = require('../utils/validation');
+const User = require('../models/user');
 authRouter.post("/signup", async (req, res) => {
     try {
         validataSignupData(req.body);
@@ -53,6 +53,12 @@ authRouter.post("/login", async (req, res) => {
         res.status(400).send("Error during login: " + err.message);
     }
 });
+
+authRouter.post("/logout", (req, res) => {
+    // res.clearCookie("token");
+    res.cookie("token", null, { expires: new Date() });
+    res.send("User logged out successfully");
+})
 
 
 module.exports = authRouter;
