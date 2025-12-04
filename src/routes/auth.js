@@ -7,19 +7,26 @@ const User = require('../models/user');
 authRouter.post("/signup", async (req, res) => {
     try {
         validataSignupData(req.body);
-        const { firstName, lastName, emailId, password } = req.body;
+        const { firstName, lastName, emailId, password, age, gender } = req.body;
         //encrypt password before saving to database
         const passwordHash = await bcrypt.hash(password, 10);
         const user = new User({
             firstName,
             lastName,
             emailId,
-            password: passwordHash
+            password: passwordHash,
+            age,
+            gender
         });
         await user.save()
-        res.send("User signed up successfully");
+        res.status(200).json({
+            message: "User signed up successfully",
+        });
 
     } catch (err) {
+        if (err.code === 11000) {
+            return res.status(400).json({ message: "Email already exists. Please use a different email." });
+        }
         res.status(400).send("ERROR :" + err.message);
     }
 });
@@ -46,8 +53,9 @@ authRouter.post("/login", async (req, res) => {
 
         res.cookie("token", token, { expires: new Date(Date.now() + 86400000) });
 
-        res.send("User logged in successfully");
-
+        res.status(200).json({
+            message: "User logged in successfully",
+        });
     }
     catch (err) {
         res.status(400).send("Error during login: " + err.message);
@@ -55,9 +63,12 @@ authRouter.post("/login", async (req, res) => {
 });
 
 authRouter.post("/logout", (req, res) => {
-    // res.clearCookie("token");
-    res.cookie("token", null, { expires: new Date() });
-    res.send("User logged out successfully");
+    try {
+        res.cookie("token", null, { expires: new Date() });
+        res.status(200).json({ message: "User logged out successfully" });
+    } catch (error) {
+        res.status(400).send("Error during logout: " + error.message);
+    }
 })
 
 
