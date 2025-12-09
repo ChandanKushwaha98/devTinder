@@ -10,9 +10,9 @@ const userAuth = async (req, res, next) => {
 
         const { token } = req.cookies;
         if (!token) {
-            return res.status(401).json({ message: 'Unauthorized: No token provided' });
+            return res.status(401).json({ message: 'Please login' });
         }
-        const decodedObj = await jwt.verify(token, 'SECRET_KEY');
+        const decodedObj = await jwt.verify(token, process.env.JWT_SECRET);
         const { _id } = decodedObj;
         const user = await User.findById(_id);
         if (!user) {

@@ -2,11 +2,28 @@ const express = require('express');
 const authRouter = express.Router();
 const bcrypt = require('bcrypt');
 const validator = require('validator');
-const { validataSignupData } = require('../utils/validation');
+const rateLimit = require('express-rate-limit');
+const { validateSignupData } = require('../utils/validation');
 const User = require('../models/user');
-authRouter.post("/signup", async (req, res) => {
+
+// Auth rate limiter
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 5,
+    message: 'Too many authentication attempts, please try again later.',
+});
+
+// Cookie options
+const getCookieOptions = () => ({
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+    maxAge: parseInt(process.env.COOKIE_MAX_AGE) || 86400000
+});
+
+authRouter.post("/signup", authLimiter, async (req, res) => {
     try {
-        validataSignupData(req.body);
+        validateSignupData(req.body);
         const { firstName, lastName, emailId, password, age, gender } = req.body;
         //encrypt password before saving to database
         const passwordHash = await bcrypt.hash(password, 10);
@@ -18,9 +35,13 @@ authRouter.post("/signup", async (req, res) => {
             age,
             gender
         });
-        await user.save()
+        const savedUser = await user.save();
+        const token = await user.getJWT();
+
+        res.cookie("token", token, getCookieOptions());
         res.status(200).json({
             message: "User signed up successfully",
+            data: savedUser
         });
 
     } catch (err) {
@@ -30,7 +51,7 @@ authRouter.post("/signup", async (req, res) => {
         res.status(400).send("ERROR :" + err.message);
     }
 });
-authRouter.post("/login", async (req, res) => {
+authRouter.post("/login", authLimiter, async (req, res) => {
     try {
         const { emailId, password } = req.body;
         if (!emailId || !password) {
@@ -51,10 +72,11 @@ authRouter.post("/login", async (req, res) => {
 
         const token = await user.getJWT();
 
-        res.cookie("token", token, { expires: new Date(Date.now() + 86400000) });
+        res.cookie("token", token, getCookieOptions());
 
         res.status(200).json({
             message: "User logged in successfully",
+            data: user
         });
     }
     catch (err) {
@@ -64,7 +86,7 @@ authRouter.post("/login", async (req, res) => {
 
 authRouter.post("/logout", (req, res) => {
     try {
-        res.cookie("token", null, { expires: new Date() });
+        res.clearCookie("token", getCookieOptions());
         res.status(200).json({ message: "User logged out successfully" });
     } catch (error) {
         res.status(400).send("Error during logout: " + error.message);

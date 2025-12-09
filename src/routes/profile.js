@@ -1,6 +1,6 @@
 const express = require('express');
 const { userAuth } = require('../middlewares/auth');
-const { valiidateProfileEditData } = require('../utils/validation');
+const { validateProfileEditData } = require('../utils/validation');
 const profileRouter = express.Router();
 const bcrypt = require('bcrypt');
 
@@ -24,7 +24,7 @@ profileRouter.patch("/profile/edit", userAuth, async (req, res) => {
 
     try {
 
-        if (!valiidateProfileEditData(req)) {
+        if (!validateProfileEditData(req)) {
             throw new Error("Invalid Edit Request");
         }
 
