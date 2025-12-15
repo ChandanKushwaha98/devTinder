@@ -3,7 +3,12 @@
     "allow": [
       "Bash(mongosh:*)",
       "Bash(mongo devTinder:*)",
-      "Bash(node dropOldIndex.js:*)"
+      "Bash(node dropOldIndex.js:*)",
+      "Bash(npm install:*)",
+      "Bash(npm audit:*)",
+      "Bash(timeout 5 npm start:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(node test-sanitization.js:*)"
     ],
     "deny": [],
     "ask": []

@@ -9,8 +9,11 @@ const sanitizeMiddleware = require('./middlewares/sanitize');
 
 const connectDB = require('./config/database');
 const cookieParser = require('cookie-parser');
+const http = require('http')
 const app = express();
 const PORT = process.env.PORT || 7777;
+
+require("./utils/cronJobs")
 
 // Security Middleware
 app.use(helmet());
@@ -58,6 +61,8 @@ const authRouter = require('./routes/auth');
 const requestRouter = require('./routes/request');
 const profileRouter = require('./routes/profile');
 const userRouter = require('./routes/user');
+const chatRouter = require('./routes/chat');
+const initializeSocket = require('./utils/socket');
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -69,6 +74,10 @@ app.use('/', authRouter);
 app.use('/', profileRouter);
 app.use('/', requestRouter);
 app.use('/', userRouter);
+app.use('/', chatRouter);
+
+
+let server = http.createServer(app)
 
 // 404 handler
 app.use((req, res) => {
@@ -90,12 +99,14 @@ app.use((err, req, res, next) => {
 });
 
 // Server and graceful shutdown
-let server;
 connectDB().then(() => {
     console.log('Database connection established');
-    server = app.listen(PORT, () => {
+    server = server.listen(PORT, () => {
         console.log(`Server is listening on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`);
     });
+
+
+    initializeSocket(server);
 }).catch((err) => {
     console.error('Database connection error:', err);
     process.exit(1);
