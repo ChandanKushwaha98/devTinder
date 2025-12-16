@@ -21,6 +21,86 @@ const getCookieOptions = () => ({
     maxAge: parseInt(process.env.COOKIE_MAX_AGE) || 86400000
 });
 
+/**
+ * @swagger
+ * /signup:
+ *   post:
+ *     summary: Register a new user
+ *     description: Create a new user account with email and password
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - firstName
+ *               - emailId
+ *               - password
+ *             properties:
+ *               firstName:
+ *                 type: string
+ *                 example: John
+ *               lastName:
+ *                 type: string
+ *                 example: Doe
+ *               emailId:
+ *                 type: string
+ *                 format: email
+ *                 example: john.doe@example.com
+ *               password:
+ *                 type: string
+ *                 format: password
+ *                 minLength: 6
+ *                 description: Must include uppercase, lowercase, number, and symbol
+ *                 example: Password123!
+ *               age:
+ *                 type: number
+ *                 example: 25
+ *               gender:
+ *                 type: string
+ *                 enum: [male, female, other]
+ *                 example: male
+ *     responses:
+ *       200:
+ *         description: User registered successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: User signed up successfully
+ *                 data:
+ *                   $ref: '#/components/schemas/User'
+ *         headers:
+ *           Set-Cookie:
+ *             description: JWT token in httpOnly cookie
+ *             schema:
+ *               type: string
+ *       400:
+ *         description: Validation error or email already exists
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Email already exists. Please use a different email.
+ *       429:
+ *         description: Too many requests
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Too many authentication attempts, please try again later.
+ */
 authRouter.post("/signup", authLimiter, async (req, res) => {
     try {
         validateSignupData(req.body);
@@ -51,6 +131,63 @@ authRouter.post("/signup", authLimiter, async (req, res) => {
         res.status(400).send("ERROR :" + err.message);
     }
 });
+
+/**
+ * @swagger
+ * /login:
+ *   post:
+ *     summary: Login user
+ *     description: Authenticate user with email and password
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - emailId
+ *               - password
+ *             properties:
+ *               emailId:
+ *                 type: string
+ *                 format: email
+ *                 example: john.doe@example.com
+ *               password:
+ *                 type: string
+ *                 format: password
+ *                 example: Password123!
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: User logged in successfully
+ *                 data:
+ *                   $ref: '#/components/schemas/User'
+ *         headers:
+ *           Set-Cookie:
+ *             description: JWT token in httpOnly cookie
+ *             schema:
+ *               type: string
+ *       400:
+ *         description: Invalid credentials or validation error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Invalid Credentials
+ *       429:
+ *         description: Too many requests
+ */
 authRouter.post("/login", authLimiter, async (req, res) => {
     try {
         const { emailId, password } = req.body;
@@ -84,6 +221,32 @@ authRouter.post("/login", authLimiter, async (req, res) => {
     }
 });
 
+/**
+ * @swagger
+ * /logout:
+ *   post:
+ *     summary: Logout user
+ *     description: Clear authentication cookie and logout user
+ *     tags: [Authentication]
+ *     responses:
+ *       200:
+ *         description: Logout successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: User logged out successfully
+ *         headers:
+ *           Set-Cookie:
+ *             description: Clears the authentication cookie
+ *             schema:
+ *               type: string
+ *       400:
+ *         description: Error during logout
+ */
 authRouter.post("/logout", (req, res) => {
     try {
         res.clearCookie("token", getCookieOptions());

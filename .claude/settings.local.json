@@ -8,7 +8,8 @@
       "Bash(npm audit:*)",
       "Bash(timeout 5 npm start:*)",
       "Bash(npm uninstall:*)",
-      "Bash(node test-sanitization.js:*)"
+      "Bash(node test-sanitization.js:*)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []

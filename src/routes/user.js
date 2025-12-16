@@ -5,8 +5,40 @@ const ConnectionRequest = require('../models/connectRequest');
 const User = require('../models/user');
 const { USER_SAFE_DATA } = require('../utils/constants');
 
-//Get all the pending connection requests for a user
-
+/**
+ * @swagger
+ * /user/requests/received:
+ *   get:
+ *     summary: Get pending connection requests
+ *     description: Retrieve all pending connection requests received by the authenticated user
+ *     tags: [Users]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: Connection requests fetched successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Connection requests fetched successfully
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     allOf:
+ *                       - $ref: '#/components/schemas/ConnectionRequest'
+ *                       - type: object
+ *                         properties:
+ *                           fromUserId:
+ *                             $ref: '#/components/schemas/User'
+ *       400:
+ *         description: Error fetching connection requests
+ *       401:
+ *         description: Unauthorized - Please login
+ */
 userRouter.get('/user/requests/received', userAuth, async (req, res) => {
 
     try {
@@ -29,6 +61,36 @@ userRouter.get('/user/requests/received', userAuth, async (req, res) => {
 
 });
 
+/**
+ * @swagger
+ * /user/connections:
+ *   get:
+ *     summary: Get user connections
+ *     description: Retrieve all accepted connections for the authenticated user
+ *     tags: [Users]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: Connections fetched successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Connections fetched successfully
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/User'
+ *                   description: List of connected users
+ *       400:
+ *         description: Error fetching connections
+ *       401:
+ *         description: Unauthorized - Please login
+ */
 userRouter.get('/user/connections', userAuth, async (req, res) => {
 
     try {
@@ -59,6 +121,54 @@ userRouter.get('/user/connections', userAuth, async (req, res) => {
 
 });
 
+/**
+ * @swagger
+ * /feed:
+ *   get:
+ *     summary: Get user feed
+ *     description: Retrieve paginated list of users excluding those with existing connections or requests
+ *     tags: [Users]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *           minimum: 1
+ *         description: Page number for pagination
+ *         example: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *           minimum: 1
+ *           maximum: 50
+ *         description: Number of users per page
+ *         example: 10
+ *     responses:
+ *       200:
+ *         description: User profiles fetched successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: User profile fetched successfully
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/User'
+ *                   description: List of user profiles for the feed
+ *       400:
+ *         description: Error fetching user feed
+ *       401:
+ *         description: Unauthorized - Please login
+ */
 userRouter.get('/feed', userAuth, async (req, res) => {
 
     //interested , accepted, ignored, rejected and his own requests should not be in the feed

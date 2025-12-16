@@ -4,6 +4,35 @@ const { validateProfileEditData } = require('../utils/validation');
 const profileRouter = express.Router();
 const bcrypt = require('bcrypt');
 
+/**
+ * @swagger
+ * /profile/view:
+ *   get:
+ *     summary: View current user profile
+ *     description: Get the authenticated user's profile information
+ *     tags: [Profile]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: Profile retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       401:
+ *         description: Unauthorized - Please login
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Unauthorized
+ *       400:
+ *         description: Error fetching profile
+ */
 profileRouter.get("/profile/view", userAuth, async (req, res) => {
 
     try {
@@ -20,6 +49,65 @@ profileRouter.get("/profile/view", userAuth, async (req, res) => {
 
 });
 
+/**
+ * @swagger
+ * /profile/edit:
+ *   patch:
+ *     summary: Update user profile
+ *     description: Update the authenticated user's profile information
+ *     tags: [Profile]
+ *     security:
+ *       - cookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               firstName:
+ *                 type: string
+ *                 example: John
+ *               lastName:
+ *                 type: string
+ *                 example: Doe
+ *               age:
+ *                 type: number
+ *                 example: 26
+ *               gender:
+ *                 type: string
+ *                 enum: [male, female, other]
+ *                 example: male
+ *               photoUrl:
+ *                 type: string
+ *                 format: uri
+ *                 example: https://example.com/photo.jpg
+ *               about:
+ *                 type: string
+ *                 example: Software developer passionate about technology
+ *               skills:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 example: ["JavaScript", "Python", "React"]
+ *     responses:
+ *       200:
+ *         description: Profile updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: John, Your profile has been updated successfully
+ *                 data:
+ *                   $ref: '#/components/schemas/User'
+ *       400:
+ *         description: Invalid edit request or validation error
+ *       401:
+ *         description: Unauthorized - Please login
+ */
 profileRouter.patch("/profile/edit", userAuth, async (req, res) => {
 
     try {
@@ -49,6 +137,65 @@ profileRouter.patch("/profile/edit", userAuth, async (req, res) => {
 
 });
 
+/**
+ * @swagger
+ * /profile/password:
+ *   patch:
+ *     summary: Change user password
+ *     description: Update the authenticated user's password
+ *     tags: [Profile]
+ *     security:
+ *       - cookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - oldPassword
+ *               - newPassword
+ *               - reEnteredNewPassword
+ *             properties:
+ *               oldPassword:
+ *                 type: string
+ *                 format: password
+ *                 description: Current password
+ *                 example: OldPassword123!
+ *               newPassword:
+ *                 type: string
+ *                 format: password
+ *                 description: New password (must include uppercase, lowercase, number, and symbol)
+ *                 example: NewPassword123!
+ *               reEnteredNewPassword:
+ *                 type: string
+ *                 format: password
+ *                 description: Re-enter new password for confirmation
+ *                 example: NewPassword123!
+ *     responses:
+ *       200:
+ *         description: Password updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Password has been updated successfully
+ *       400:
+ *         description: Validation error (incorrect old password, passwords don't match, etc.)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Unauthorized: Current Password you've entered is incorrect"
+ *       401:
+ *         description: Unauthorized - Please login
+ */
 profileRouter.patch("/profile/password", userAuth, async (req, res) => {
     try {
         const { oldPassword, newPassword, reEnteredNewPassword } = req.body;
